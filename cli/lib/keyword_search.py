@@ -1,18 +1,15 @@
 import string
 
-from .search_utils import DEFAULT_SEARCH_LIMIT, load_movies, load_stop_words
+from .search_utils import DEFAULT_SEARCH_LIMIT, load_movies, STOPWORDS_PATH
 
 
 def search_command(query: str, limit: int = DEFAULT_SEARCH_LIMIT) -> list[dict]:
     movies = load_movies()
-    stop_words = load_stop_words()
-    for stop_word in stop_words:
-        stop_word = preprocess_text(stop_word)
     results = []
     for movie in movies:
         query_tokens = tokenize_text(query)
         title_tokens = tokenize_text(movie["title"])
-        if has_matching_token(query_tokens, title_tokens,stop_words):
+        if has_matching_token(query_tokens, title_tokens):
             results.append(movie)
             if len(results) >= limit:
                 break
@@ -20,10 +17,10 @@ def search_command(query: str, limit: int = DEFAULT_SEARCH_LIMIT) -> list[dict]:
     return results
 
 
-def has_matching_token(query_tokens: list[str], title_tokens: list[str], stop_words: list[str]) -> bool:
+def has_matching_token(query_tokens: list[str], title_tokens: list[str]) -> bool:
     for query_token in query_tokens:
         for title_token in title_tokens:
-            if query_token in title_token and query_token not in stop_words:
+            if query_token in title_token:
                 return True
     return False
 
@@ -33,6 +30,13 @@ def preprocess_text(text: str) -> str:
     text = text.translate(str.maketrans("", "", string.punctuation))
     return text
 
+def load_stopwords() -> list[str]:
+    with open(STOPWORDS_PATH, "r") as f:
+        return [preprocess_text(word) for word in f.read().splitlines()]
+
+
+STOPWORDS = load_stopwords()
+
 
 def tokenize_text(text: str) -> list[str]:
     text = preprocess_text(text)
@@ -41,4 +45,8 @@ def tokenize_text(text: str) -> list[str]:
     for token in tokens:
         if token:
             valid_tokens.append(token)
-    return valid_tokens
+    filtered_words = []
+    for word in valid_tokens:
+        if word not in STOPWORDS:
+            filtered_words.append(word)
+    return filtered_words

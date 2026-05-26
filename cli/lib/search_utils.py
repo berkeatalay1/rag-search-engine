@@ -7,7 +7,7 @@ class Movie(TypedDict):
     title: str
     description: str
 
-DEFAULT_SEARCH_LIMIT = 5
+DEFAULT_SEARCH_LIMIT = 10000
 
 
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
